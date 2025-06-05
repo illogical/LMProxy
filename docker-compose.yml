@@ -4,9 +4,10 @@ services:
       context: .
       dockerfile: LLMProxy/Dockerfile
     environment:
-      - ASPNETCORE_HTTPS_PORTS=8081
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_URLS=http://0.0.0.0:8080
     expose:
-      - "8081"
+      - "8080"
     networks:
       - tailscale-net
 
@@ -18,10 +19,14 @@ services:
     environment:
       - TS_AUTHKEY=${TS_AUTHKEY}
       - TS_EXTRA_ARGS=--hostname=llmproxy
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_SERVE_CONFIG=/config/https.json
     volumes:
-      - tailscale-var-lib:/var/lib/tailscale
+      - tailscale-state:/var/lib/tailscale
       - /dev/net/tun:/dev/net/tun
-    network_mode: service:llmproxy
+      - ./https.json:/config/https.json:ro
+    networks:
+      - tailscale-net
     restart: unless-stopped
 
 networks:
@@ -29,4 +34,4 @@ networks:
     driver: bridge
 
 volumes:
-  tailscale-var-lib:
+  tailscale-state:

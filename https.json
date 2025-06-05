@@ -1,0 +1,16 @@
+{
+  "TCP": {
+    "443": {
+      "HTTPS": true
+    }
+  },
+  "Web": {
+    "llmproxy.bangus-city.ts.net:443": {
+      "Handlers": {
+        "/": {
+          "Proxy": "http://llmproxy:8080"
+        }
+      }
+    }
+  }
+}
