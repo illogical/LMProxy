@@ -4,20 +4,43 @@ namespace LLMProxy.Services
 {
     public class OllamaService
     {
-        public async Task<ChatResponse> ConversationHistory()
+        private readonly ILogger<OllamaService> _logger;
+        private const string OLLAMA_API_URL = "http://host.docker.internal:11434/";
+
+        public OllamaService(ILogger<OllamaService> logger)
         {
-            var endpoint = "http://host.docker.internal:11434/";
-            var modelId = "gemma3";
+            _logger = logger;
+        }
 
-            IChatClient client = new OllamaChatClient(endpoint, modelId: modelId);
+        public async Task<ChatResponse> Chat(string model, string prompt, string systemPrompt = "")
+        {
+            IChatClient client = new OllamaChatClient(OLLAMA_API_URL, modelId: model);
 
-            List<ChatMessage> conversation =
-            [
-                new(ChatRole.System, "You are a helpful AI assistant"),
-                new(ChatRole.User, "How do I effectively manage LLM context?")
-            ];
+            List<ChatMessage> conversation = new();
+
+            if (!string.IsNullOrEmpty(systemPrompt))
+            {
+                conversation.Add(new ChatMessage(ChatRole.System, systemPrompt));
+            }
+            conversation.Add(new ChatMessage(ChatRole.User, prompt));
 
             return await client.GetResponseAsync(conversation);
+        }
+
+        public async Task<ChatResponse> ChatWithHistory(string model, List<ChatMessage> messages)
+        {
+            if (messages == null || messages.Count == 0)
+            {
+                throw new ArgumentException("Messages cannot be null or empty.", nameof(messages));
+            }
+
+            // Ensure the last message is the user prompt
+            string prompt = messages.Last().Text;
+            {
+                IChatClient client = new OllamaChatClient(OLLAMA_API_URL, modelId: model);
+
+                return await client.GetResponseAsync(messages);
+            }
         }
     }
 }

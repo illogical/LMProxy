@@ -1,5 +1,8 @@
-﻿using LLMProxy.Services;
+﻿using LLMProxy.Helpers;
+using LLMProxy.Models;
+using LLMProxy.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.AI;
 
 namespace LLMProxy.Controllers
 {
@@ -18,18 +21,33 @@ namespace LLMProxy.Controllers
 
         [HttpGet]
         [Route("/")]
-        public IActionResult GetOllamaInfo()
+        public IActionResult GetApiInfo()
         {
-            return Ok("Ollama API is running.");
+            return Ok("LLMProxy API is running.");
         }
 
         [HttpGet]
-        [Route("/chat")]
-        public async Task<IActionResult> Chat()
+        [Route("/[controller]")]
+        public IActionResult GetOllamaInfo()
         {
+            return Ok("LLMProxy Ollama API is running.");
+        }
+
+        [HttpPost]
+        [Route("/[controller]/chat")]
+        public async Task<IActionResult> Chat([FromBody] ChatRequest request)
+        {
+            if (request == null || string.IsNullOrEmpty(request.Model) || request.Messages == null || !request.Messages.Any())
+            {
+                return BadRequest("Invalid chat request.");
+            }
+
             try
             {
-                var response = await _ollamaSvc.ConversationHistory();
+                _logger.LogInformation("Received chat request for model: {Model}", request.Model);
+                
+                var messages = request.Messages.Select(m => new ChatMessage(ChatHelper.GetRoleFromString(m.Role), m.Content)).ToList();
+                var response = await _ollamaSvc.ChatWithHistory(request.Model, messages);
                 return Ok(response);
             }
             catch (Exception ex)
