@@ -10,6 +10,7 @@ services:
       - "8080"
     networks:
       - tailscale-net
+    restart: unless-stopped
 
   tailscale:
     image: tailscale/tailscale:latest

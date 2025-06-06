@@ -38,7 +38,7 @@ public class QueueService
             await channel.BasicPublishAsync(exchange: "", routingKey: queueName, body: body);
             _logger.LogInformation($"Message successfully queued to {queueName}");
         }
-        catch (System.Exception ex)
+        catch (Exception ex)
         {
             _logger.LogError(ex, $"Error adding message to queue {queueName}");
             return false;

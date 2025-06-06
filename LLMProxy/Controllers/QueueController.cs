@@ -30,10 +30,13 @@ public class QueueController : ControllerBase
             _logger.LogInformation($"Received a queue add request to queue {queue}.");
             
             var response = await _queueSvc.AddToQueue(queue, request.Message);
+
+            _logger.LogInformation($"Message added to queue {queue}: {request.Message}");
             return Ok();
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, $"Error processing queue add request for queue {queue}");
             return StatusCode(500, $"Internal server error: {ex.Message}");
         }
     }
