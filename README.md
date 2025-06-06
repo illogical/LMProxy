@@ -12,6 +12,15 @@ A simple proxy server for LLMs (Large Language Models) that allows you to easily
 
 This project includes a `docker-compose.yml` for running the API and its dependencies (such as RabbitMQ) in containers.
 
+1. Create a `.env` file in the root directory with the following content:
+
+```env
+TS_AUTHKEY=<your_auth_key>
+
+```
+
+2. Update AppSettings.json
+
 ### Start the services
 ```sh
 docker compose up -d

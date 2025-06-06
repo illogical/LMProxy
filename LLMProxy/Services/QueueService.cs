@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 
@@ -6,16 +7,20 @@ namespace LLMProxy.Services;
 public class QueueService
 {
     private readonly ConnectionFactory _factory;
-    private readonly string _hostName = "localhost"; // Change as needed
     private readonly ILogger<QueueService> _logger;
 
-    public QueueService(ILogger<QueueService> logger)
+    public QueueService(ILogger<QueueService> logger, IConfiguration configuration)
     {
         _logger = logger;
-        _factory = new ConnectionFactory() { HostName = _hostName };
+
+        _factory = new ConnectionFactory() { 
+            HostName = configuration["RabbitMQ:HostName"] ?? "localhost", 
+            UserName = configuration["RabbitMQ:UserName"] ?? "guest",
+            Password = configuration["RabbitMQ:Password"] ?? "guest"
+        };
     }
 
-    public async Task<bool> AddToQueue(string queueName, string message)
+    public async Task AddToQueue(string queueName, string message)
     {
         if (string.IsNullOrWhiteSpace(queueName) || message == null)
             throw new ArgumentException("Queue name and message must be provided.");
@@ -40,10 +45,9 @@ public class QueueService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error adding message to queue {queueName}");
-            return false;
+            _logger.LogError(ex, $"Error adding message to queue {queueName} via host {_factory.HostName}");
+            throw;
         }
 
-        return true;
     }
 }

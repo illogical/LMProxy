@@ -11,9 +11,10 @@ public class QueueController : ControllerBase
     private readonly ILogger<QueueController> _logger;
     private readonly QueueService _queueSvc;
 
-    public QueueController(ILogger<QueueController> logger)
+    public QueueController(ILogger<QueueController> logger, QueueService queueService)
     {
         _logger = logger;
+        _queueSvc = queueService;
     }
     
     [HttpPost]
@@ -29,10 +30,10 @@ public class QueueController : ControllerBase
         {
             _logger.LogInformation($"Received a queue add request to queue {queue}.");
             
-            var response = await _queueSvc.AddToQueue(queue, request.Message);
+            await _queueSvc.AddToQueue(queue, request.Message);
 
             _logger.LogInformation($"Message added to queue {queue}: {request.Message}");
-            return Ok();
+            return Ok("Message added to queue {queue}: {request.Message}");
         }
         catch (Exception ex)
         {
