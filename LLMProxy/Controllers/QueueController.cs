@@ -1,0 +1,40 @@
+using LLMProxy.Models;
+using LLMProxy.Services;
+using Microsoft.AspNetCore.Mvc;
+
+namespace LLMProxy.Controllers;
+
+[ApiController]
+[Route("[controller]")]
+public class QueueController : ControllerBase
+{
+    private readonly ILogger<QueueController> _logger;
+    private readonly QueueService _queueSvc;
+
+    public QueueController(ILogger<QueueController> logger)
+    {
+        _logger = logger;
+    }
+    
+    [HttpPost]
+    [Route("/[controller]/add/{queue}")]
+    public async Task<IActionResult> AddQueue([FromRoute] string queue, [FromBody] QueueAddRequest request)
+    {
+        if (request == null || request.Message == null || string.IsNullOrWhiteSpace(queue))
+        {
+            return BadRequest("Invalid queue request.");
+        }
+
+        try
+        {
+            _logger.LogInformation($"Received a queue add request to queue {queue}.");
+            
+            var response = await _queueSvc.AddToQueue(queue, request.Message);
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Internal server error: {ex.Message}");
+        }
+    }
+}

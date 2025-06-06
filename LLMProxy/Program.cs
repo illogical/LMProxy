@@ -11,6 +11,7 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 builder.Services.AddSingleton<OllamaService>();
+builder.Services.AddSingleton<QueueService>();
 
 // Read PidogUrl from configuration
 //var pidogUrl = builder.Configuration["PidogUrl"] ?? throw new InvalidOperationException("PidogUrl configuration is missing.");
