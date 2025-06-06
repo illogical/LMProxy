@@ -15,6 +15,7 @@ public class QueueService
 
         _factory = new ConnectionFactory() { 
             HostName = configuration["RabbitMQ:HostName"] ?? "localhost", 
+            Port = int.TryParse(configuration["RabbitMQ:Port"], out var port) ? port : 5672,
             UserName = configuration["RabbitMQ:UserName"] ?? "guest",
             Password = configuration["RabbitMQ:Password"] ?? "guest"
         };

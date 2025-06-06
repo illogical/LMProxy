@@ -10,10 +10,22 @@ services:
       - "8080"
     networks:
       - tailscale-net
+      - backend
+    restart: unless-stopped
+
+  rabbitmq:
+    image: bitnami/rabbitmq:latest
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"   # AMQP protocol port
+      - "15672:15672" # RabbitMQ Management Plugin Web UI
+    volumes:
+      - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
     restart: unless-stopped
 
   tailscale:
     image: tailscale/tailscale:latest
+    container_name: ts-llmproxy
     cap_add:
       - NET_ADMIN
       - NET_RAW
@@ -32,6 +44,8 @@ services:
 
 networks:
   tailscale-net:
+    driver: bridge
+  backend:
     driver: bridge
 
 volumes:
