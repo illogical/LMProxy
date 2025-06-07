@@ -15,12 +15,15 @@ services:
 
   rabbitmq:
     image: bitnami/rabbitmq:latest
+    hostname: rabbitmq
     container_name: rabbitmq
     ports:
       - "5672:5672"   # AMQP protocol port
       - "15672:15672" # RabbitMQ Management Plugin Web UI
     volumes:
       - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+    networks:
+      - backend
     restart: unless-stopped
 
   tailscale:

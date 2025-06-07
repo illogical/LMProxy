@@ -37,7 +37,6 @@ public class QueueController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error processing queue add request for queue {queue}");
             return StatusCode(500, $"Internal server error: {ex.Message}");
         }
     }

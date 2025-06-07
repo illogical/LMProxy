@@ -46,7 +46,7 @@ public class QueueService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error adding message to queue {queueName} via host {_factory.HostName}");
+            _logger.LogError(ex, $"Error adding message to queue {queueName} via host {_factory.HostName} and user {_factory.UserName}");
             throw;
         }
 
