@@ -2,6 +2,12 @@
   "TCP": {
     "443": {
       "HTTPS": true
+    },
+    "15672": {
+      "Proxy": "http://rabbitmq:15672"
+    },
+    "5672": {
+      "Proxy": "tcp://rabbitmq:5672"
     }
   },
   "Web": {
