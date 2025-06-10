@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.AI;
 
 namespace LLMProxy.Services;
+
 public class OllamaService
 {
     private readonly ILogger<OllamaService> _logger;

@@ -1,3 +1,5 @@
+using LLMProxy.Models;
+using Microsoft.Extensions.AI;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.Ollama;
@@ -19,9 +21,11 @@ namespace SemanticAspire.ApiService.Services
         public void InitializeServer(string serverId, string endpoint, string modelId, float temperature = 0.7f)
         {
             // Create Kernel with Ollama chat completion
+#pragma warning disable SKEXP0070 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             var kernelBuilder = Kernel.CreateBuilder()
                 .AddOllamaChatCompletion(modelId, new Uri(endpoint));
-            
+#pragma warning restore SKEXP0070 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+
             var kernel = kernelBuilder.Build();
 
             // Create HttpClient
@@ -37,14 +41,20 @@ namespace SemanticAspire.ApiService.Services
                 throw new InvalidOperationException($"Server {serverId} not initialized");
 
             var chatService = resources.Kernel.GetRequiredService<IChatCompletionService>();
+#pragma warning disable SKEXP0070 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             var settings = new OllamaPromptExecutionSettings
             {
                 Temperature = request.Temperature,
                 FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
             };
+#pragma warning restore SKEXP0070 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
-            var chatHistory = ConvertToChatHistory(request.History);
-            chatHistory.AddUserMessage(request.Prompt);
+            var chatHistory = ConvertToChatHistory(request.Messages);
+            var lastMessage = request.Messages.LastOrDefault(n => n.Role == "user" || n.Role == "assistant");
+
+            if (string.IsNullOrEmpty(lastMessage?.Content))
+                throw new ArgumentException("Chat history must contain at least one user or assistant message", nameof(request));
+            chatHistory.AddUserMessage(lastMessage?.Content ?? string.Empty);
 
             var response = await chatService.GetChatMessageContentAsync(
                 chatHistory, 
@@ -64,14 +74,20 @@ namespace SemanticAspire.ApiService.Services
                 throw new InvalidOperationException($"Server {serverId} not initialized");
 
             var chatService = resources.Kernel.GetRequiredService<IChatCompletionService>();
+#pragma warning disable SKEXP0070 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             var settings = new OllamaPromptExecutionSettings
             {
                 Temperature = request.Temperature,
                 FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
             };
+#pragma warning restore SKEXP0070 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
-            var chatHistory = ConvertToChatHistory(request.History);
-            chatHistory.AddUserMessage(request.Prompt);
+            var chatHistory = ConvertToChatHistory(request.Messages);
+            var lastMessage = request.Messages.LastOrDefault(n => n.Role == "user" || n.Role == "assistant");
+
+            if (string.IsNullOrEmpty(lastMessage?.Content))
+                throw new ArgumentException("Chat history must contain at least one user or assistant message", nameof(request));
+            chatHistory.AddUserMessage(lastMessage?.Content ?? string.Empty);
 
             await foreach (var content in chatService.GetStreamingChatMessageContentsAsync(
                 chatHistory,
@@ -110,7 +126,7 @@ namespace SemanticAspire.ApiService.Services
 
             try
             {
-                var models = await OllamaClient.ListModelsAsync(resources.HttpClient);
+                var models = await OllamaHttpClient.ListModelsAsync(resources.HttpClient);
                 return models.Models.Select(m => m.Name).OrderBy(name => name).ToList();
             }
             catch (Exception ex)
@@ -119,7 +135,7 @@ namespace SemanticAspire.ApiService.Services
             }
         }
 
-        private static ChatHistory ConvertToChatHistory(List<ChatMessage> messages)
+        private static ChatHistory ConvertToChatHistory(List<MessageDto> messages)
         {
             var chatHistory = new ChatHistory();
             

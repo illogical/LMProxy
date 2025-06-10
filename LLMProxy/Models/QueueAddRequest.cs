@@ -2,5 +2,5 @@ namespace LLMProxy.Models;
 
 public class QueueAddRequest
 {
-    public string Message { get; set; }
+    public string Message { get; set; } = string.Empty;
 }
