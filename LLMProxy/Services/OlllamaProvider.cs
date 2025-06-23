@@ -157,6 +157,18 @@ namespace SemanticAspire.ApiService.Services
             return chatHistory;
         }
 
+        public Kernel GetKernel(string serverId)
+        {
+            if (string.IsNullOrWhiteSpace(serverId))
+                throw new ArgumentException("serverId cannot be null or empty", nameof(serverId));
+
+            if (_serverResources.TryGetValue(serverId, out var resources))
+            {
+                return resources.Kernel;
+            }
+            throw new KeyNotFoundException($"Server resources for serverId '{serverId}' do not exist.");
+        }
+
         public void Dispose()
         {
             foreach (var resource in _serverResources.Values)

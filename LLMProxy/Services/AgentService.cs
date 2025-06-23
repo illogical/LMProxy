@@ -1,5 +1,6 @@
 
 using LLMProxy.Models;
+using Microsoft.SemanticKernel;
 
 namespace LLMProxy.Services;
 
@@ -43,6 +44,40 @@ public class AgentService
         catch (Exception ex)
         {
             _logger.LogError(ex, "An error occurred while processing the agent prompt.");
+            throw new InvalidOperationException("Internal server error", ex);
+        }
+    }
+
+    public async Task<string> LoadPromptAsync(string filename)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(filename))
+            {
+                throw new ArgumentException("Filename cannot be null or empty.", nameof(filename));
+            }
+
+            _logger.LogInformation("Loading prompt from file: {Filename}", filename);
+
+            var promptTemplateText = await File.ReadAllTextAsync(filename);
+
+            // TODO: Pass in the serverId or use a default one
+            var kernel = _llmProvider.GetKernel("local");
+
+            if (kernel == null)
+            {
+                throw new InvalidOperationException("Kernel is not initialized.");
+            }
+
+            var promptTemplateFactory = new KernelPromptTemplateFactory();
+
+            var promptTemplate = await promptTemplateFactory.Create(new PromptTemplateConfig(promptTemplateText)).RenderAsync(kernel);
+
+            return promptTemplate;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An error occurred while loading the prompt.");
             throw new InvalidOperationException("Internal server error", ex);
         }
     }
