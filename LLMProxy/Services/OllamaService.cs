@@ -1,20 +1,22 @@
 ﻿using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Configuration;
 
 namespace LLMProxy.Services;
 
 public class OllamaService
 {
     private readonly ILogger<OllamaService> _logger;
-    private const string OLLAMA_API_URL = "http://host.docker.internal:11434/";
+    private readonly string _ollamaApiUrl;
 
-    public OllamaService(ILogger<OllamaService> logger)
+    public OllamaService(ILogger<OllamaService> logger, IConfiguration configuration)
     {
         _logger = logger;
+        _ollamaApiUrl = configuration["OllamaApiUrl"] ?? "http://host.docker.internal:11434/";
     }
 
     public async Task<ChatResponse> Chat(string model, string prompt, string systemPrompt = "")
     {
-        IChatClient client = new OllamaChatClient(OLLAMA_API_URL, modelId: model);
+        IChatClient client = new OllamaChatClient(_ollamaApiUrl, modelId: model);
 
         List<ChatMessage> conversation = new();
 
@@ -37,7 +39,7 @@ public class OllamaService
         // Ensure the last message is the user prompt
         string prompt = messages.Last().Text;
         {
-            IChatClient client = new OllamaChatClient(OLLAMA_API_URL, modelId: model);
+            IChatClient client = new OllamaChatClient(_ollamaApiUrl, modelId: model);
 
             return await client.GetResponseAsync(messages);
         }
